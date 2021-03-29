@@ -156,6 +156,7 @@ class AapjeOmino
     //Setter voor maxScore
     void setMaxScore (int score);
 
+
     bool checkHoogte (int num);
     bool checkBreedte (int num);
     bool checkNrStenen (int num);

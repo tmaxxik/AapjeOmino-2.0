@@ -132,7 +132,8 @@ void doeSpel (AapjeOmino *ao1)
               schrijfZetten ("`Goede' zetten voor speler aan beurt zijn:",
                              zetten);
               break;
-      case 3: t1 = clock ();
+      case 3: aantalStanden = 0;
+              t1 = clock ();
               score = ao1 -> besteScore (besteZet, aantalStanden); 
               t2 = clock ();
               cout << endl;

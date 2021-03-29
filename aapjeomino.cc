@@ -534,8 +534,9 @@ vector<Zet> AapjeOmino::bepaalGoedeZetten ()
 
 void AapjeOmino::undoZet ()
 {
-  wisselSpeler();
+  //wisselSpeler();
   Steen returnSteen = stenenOpHetBord.back();
+  //cout << "Steen te retouneren naar de " << aanBeurt << " is " << returnSteen.getSteenNummer() << endl;
   if (aanBeurt == 1)
     Femke.push_back(returnSteen);
   else
@@ -563,41 +564,21 @@ void AapjeOmino::undoPot (int steenN)
   int pos;
   if (aanBeurt == 1)
   {
-    bool check = false;
     for (int i = 0; i < Femke.size(); i++)
-    {
       if (Femke[i].getSteenNummer() == steenN)
-      {
-        check = true;
         pos = i;
-      }
-    }
-    if (!check)
-    {
-      cout << "Femke heeft geen zo'n steen!" << endl;
-      return;
-    }
-    pot.push_back(Femke.at(pos));
+
+    pot.insert(pot.begin(), Femke.at(pos));
     Femke.erase(Femke.begin() + pos);
   }
 
   if (aanBeurt == 2)
   {
-    bool check = false;
     for (int i = 0; i < Lieke.size(); i++)
-    {
       if (Lieke[i].getSteenNummer() == steenN)
-      {
-        check = true;
         pos = i;
-      }
-    }
-    if (!check)
-    {
-      cout << "Lieke heeft geen zo'n steen!" << endl;
-      return;
-    }
-    pot.push_back(Lieke.at(pos));
+    
+    pot.insert(pot.begin(), Lieke.at(pos));
     Lieke.erase(Lieke.begin() + pos);
   }  
 }  // undoPot
@@ -642,20 +623,16 @@ int AapjeOmino::besteScore (Zet & besteZet, long long & aantalStanden)
     //2. Speler kan geen zet uitvoeren 
     if (zetten.empty())
     {
+      int score;
       wisselSpeler();
       aantalStanden++;
-      score = - besteScore(besteZet, aantalStanden);
-     
-      maxScore = score;
+      maxScore = - besteScore(besteZet, aantalStanden);
       besteZet.setDefaultWaardes();
+      wisselSpeler();
      
       //Een specifieke steen terug naar de pot terugzetten
       if (nummerVDSteen != -1)
-      { 
-        wisselSpeler();
         undoPot(nummerVDSteen);
-      }
-
       return maxScore;
     }
     //Speler heeft wel een zet (3.) OF hij heeft een steen gepakt en kan nu een zet uitvoeren (1.)
@@ -670,12 +647,13 @@ int AapjeOmino::besteScore (Zet & besteZet, long long & aantalStanden)
         //Recursieve aanroep
         score = - besteScore(besteZet, aantalStanden);
         scoresVanDeSpeler.push_back(score);
-        undoZet(); 
+        wisselSpeler();
+        undoZet();
       }
       if (gepakt)
       {
-        wisselSpeler();
         undoPot(nummerVDSteen);
+        gepakt = false;
       }
       //Bepalen de beste score van de speler   
       maxScore = scoresVanDeSpeler[0];
