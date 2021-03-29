@@ -151,7 +151,7 @@ class AapjeOmino
     //Maakt een zet die gedaan is ongedaan 
     void undoZet ();
     //Maakt een zet met een steen uit de pot ongedaan 
-    void undoPot ();
+    void undoPot (int steenN);
 
     //Setter voor maxScore
     void setMaxScore (int score);
@@ -181,7 +181,7 @@ class AapjeOmino
     //Minimaal mogelijke waarde voor maxScore (voor de functie bestScore())
     //LET OP! Wordt RESET in MAIN.CC
     int maxScore;
-
+    vector <int> scoresVanDeSpeler;
  
     
     //Stenen op het bord

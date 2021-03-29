@@ -558,15 +558,44 @@ void AapjeOmino::undoZet ()
 
 //*************************************************************************
 
-void AapjeOmino::undoPot ()
+void AapjeOmino::undoPot (int steenN)
 {
-  wisselSpeler();
-  Steen returnSteen = aanBeurt == 1 ? Femke[Femke.size() - 1] : Lieke[Lieke.size() - 1];
-  pot.push_back(returnSteen);
+  cout << "Stap 3: " << aanBeurt<< endl;
+  Steen returnSteen;
+  //Steen returnSteen = aanBeurt == 1 ? Femke[Femke.size() - 1] : Lieke[Lieke.size() - 1];
   if (aanBeurt == 1)
-    Femke.pop_back();
-  else
-    Lieke.pop_back();
+  {
+    int i;
+    for (i = 0; i < Femke.size(); i++)
+    {
+      if (Femke[i].getSteenNummer() == steenN)
+        returnSteen = Femke[i];
+    }
+    if (i == Femke.size())
+    {
+      cout << "KUT Femke!" << endl;
+      return;
+    }
+    pot.push_back(returnSteen);
+    Femke.erase(Femke.begin() + i);
+  }
+  if (aanBeurt == 2)
+  {
+    int i;
+    for (i = 0; i < Lieke.size(); i++)
+    {
+      if (Lieke[i].getSteenNummer() == steenN)
+        returnSteen = Lieke[i];
+    }
+    if (i == Lieke.size())
+    {
+      cout << "KUT Lieke!" << endl;
+      return;
+    }
+    pot.push_back(returnSteen);
+    Lieke.erase(Lieke.begin() + i);
+  }
+    
 }  // undoPot
 
 //*************************************************************************
@@ -591,14 +620,19 @@ int AapjeOmino::besteScore (Zet & besteZet, long long & aantalStanden)
   else
   {
     bool gepakt = false;
+    int nummer;
     int score;
     vector <Zet> zetten = bepaalMogelijkeZetten();
 
     //1. Geen steen voor een geldige zet
-    if (zetten.empty() && haalSteenUitPot() != -1)
+    if (zetten.empty())
     {
-      zetten = bepaalMogelijkeZetten();
-      gepakt = true;
+      nummer = haalSteenUitPot();
+      if (nummer != -1)
+      {
+        zetten = bepaalMogelijkeZetten();
+        gepakt = true;
+      }
     }
     //2. Speler kan geen zet uitvoeren 
     if (zetten.empty())
@@ -606,14 +640,13 @@ int AapjeOmino::besteScore (Zet & besteZet, long long & aantalStanden)
       wisselSpeler();
       aantalStanden++;
       score = - besteScore(besteZet, aantalStanden);
+     
       //Beste score en zet bepalen
-      if (score > maxScore)
-      {
-        maxScore = score;
-        besteZet.setDefaultWaardes();
-      }
+      maxScore = score;
+      besteZet.setDefaultWaardes();
+     
       //Een specifieke steen terug naar de pot terugzetten
-      undoPot();
+      undoPot(nummer);
     }
     //Speler heeft wel een zet (3.) OF hij heeft een steen gepakt en kan nu een zet uitvoeren (1.)
     else 
@@ -626,21 +659,30 @@ int AapjeOmino::besteScore (Zet & besteZet, long long & aantalStanden)
         aantalStanden++;
         //Recursieve aanroep
         score = - besteScore(besteZet, aantalStanden);
-        //Bepalen de beste score en de beste zet
-        if (score > maxScore)
-        {
-          maxScore = score;
-          besteZet = *it;
-        }
-        //In case de steen uit de pot was
-        //undoZet: uit het bord -> hand; undoPot: hand -> pot
+    
+        scoresVanDeSpeler.push_back(score);
+    
         undoZet(); 
       }
       if (gepakt)
       {
+        cout << "Step 2: " << aanBeurt << endl;
         wisselSpeler();
-        undoPot();
+        undoPot(nummer);
       }  
+
+      maxScore = scoresVanDeSpeler[0];
+      besteZet = zetten[0];
+      for (int i = 1; i < scoresVanDeSpeler.size(); i++)
+      {
+        if (scoresVanDeSpeler[i] > maxScore)
+        {
+          maxScore = scoresVanDeSpeler[i];
+          besteZet = zetten[i];
+        }
+      }
+      scoresVanDeSpeler.clear();
+
     }
   }
   return maxScore;
