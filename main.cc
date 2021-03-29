@@ -133,9 +133,7 @@ void doeSpel (AapjeOmino *ao1)
                              zetten);
               break;
       case 3: t1 = clock ();
-              score = ao1 -> besteScore (besteZet, aantalStanden);
-              //NOG AANPASEN
-              ao1->setMaxScore(INT_MIN);
+              score = ao1 -> besteScore (besteZet, aantalStanden); 
               t2 = clock ();
               cout << endl;
               cout << "Optimale score = " << score << endl;
@@ -145,6 +143,7 @@ void doeSpel (AapjeOmino *ao1)
                    << " standen bekeken." << endl;
               cout << "Dit kostte " << (t2-t1) << " clock ticks, ofwel "
                << (((double)(t2-t1))/CLOCKS_PER_SEC) << " seconden." << endl;
+               ao1->setMaxScore(INT_MIN);
               break;
       case 4: break;
       default: cout << endl;
@@ -166,8 +165,55 @@ void doeSpel (AapjeOmino *ao1)
 // Voert de experimenten uit zoals beschreven in de opdracht.
 void doeExperimenten ()
 {
-  // TODO: implementeer deze functie
+  AapjeOmino *ao1;
+  int keuze = 0;
+  int n, score;
+  long long aantalStanden;
+  vector<Zet> zetten;
+  Zet besteZet;
+  clock_t t1, t2;
 
+  //De uitslagen van een experiment met de gegeven parameters
+  while (keuze != 2) {
+    for (n = 8; n <= 30; n++) {
+      ao1 = new AapjeOmino();
+      aantalStanden = 0;
+      if (ao1->genereerRandomSpel(7, 7, n, n / 4, 3, 3, 1, n)) 
+      {
+        ao1 -> drukAf();
+        t1 = clock ();
+        score = ao1 -> besteScore (besteZet, aantalStanden);
+        //NOG AANPASEN
+        t2 = clock ();
+       
+        cout << endl;
+         ao1->setMaxScore(-2147483648);
+        cout << "We hebben nu " << n << " stenen" << endl;
+        cout << "Optimale score = " << score << endl;
+        cout << "We hebben hiervoor " << aantalStanden
+        << " standen bekeken." << endl;
+        cout << "Dit kostte " << (t2-t1) << " clock ticks, ofwel "
+        << (((double)(t2-t1))/CLOCKS_PER_SEC) << " seconden." << endl;
+
+        //Klein menu om experimenten af te breken
+        cout << endl;
+        cout << "1. Nieuw experiment starten" << endl;
+        cout << "2. Stoppen" << endl;
+        cout << endl;
+        cout << "Maak een keuze: ";
+        cin >> keuze;
+        switch (keuze) 
+        {
+          case 1: delete ao1;
+          break;
+          case 2: n = 31;
+          break;
+          default: cout << endl;
+          cout << "Voer een goede keuze in!" << endl;
+        }//switch
+      }//if
+    }//for 
+  }//while
 }  // doeExperimenten
 
 //*************************************************************************

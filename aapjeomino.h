@@ -149,12 +149,20 @@ class AapjeOmino
     bool match (Steen steen, int i, int j);
 
     //Maakt een zet die gedaan is ongedaan 
-    void undoZet();
+    void undoZet ();
     //Maakt een zet met een steen uit de pot ongedaan 
-    void undoPot();
+    void undoPot ();
 
     //Setter voor maxScore
     void setMaxScore (int score);
+
+    bool checkHoogte (int num);
+    bool checkBreedte (int num);
+    bool checkNrStenen (int num);
+    bool checkBeginAantalStenen (int num);
+    bool checkPositieNULLSteen (int pos_i, int pos_j);
+    bool checkWaardes (int i, int n, int o, int z, int w);
+    void verdeelStenen (int pos_i, int pos_j, int beginAantalStenen);
 
   private:
     //Het bord (steennummer en rotatie)
@@ -168,9 +176,13 @@ class AapjeOmino
 
     //Als een steen deze ronde door een speler al gepakt is.
     bool steenGepakt;  
+
+    
     //Minimaal mogelijke waarde voor maxScore (voor de functie bestScore())
     //LET OP! Wordt RESET in MAIN.CC
-    int maxScore = INT_MIN;
+    int maxScore;
+
+ 
     
     //Stenen op het bord
     vector <Steen> stenenOpHetBord; 
