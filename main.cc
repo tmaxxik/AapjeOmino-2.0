@@ -188,7 +188,8 @@ void doeExperimenten ()
         t2 = clock ();
        
         cout << endl;
-         ao1->setMaxScore(-2147483648);
+        ao1->setMaxScore(-2147483648);
+        ao1->aanroep = 0;
         cout << "We hebben nu " << n << " stenen" << endl;
         cout << "Optimale score = " << score << endl;
         cout << "We hebben hiervoor " << aantalStanden

@@ -14,7 +14,7 @@ AapjeOmino::AapjeOmino ()
 {
   aanBeurt = 1;
   steenGepakt = false;
-  maxScore = INT_MIN;
+  maxScore = -100;
   for (int i = 0; i < MaxDimensie; i++)
   {
     for (int j = 0; j < MaxDimensie; j++)
@@ -594,9 +594,11 @@ void AapjeOmino::setMaxScore (int score)
 
 int AapjeOmino::besteScore (Zet & besteZet, long long & aantalStanden)
 {
+  aanroep++;
   //Eindstand is bereikt
   if (eindstand())
   {
+    cout << "AANROEP: " << aanroep << endl;
     if (aanBeurt == 1)
       return Lieke.size() - Femke.size();
     else 
@@ -623,10 +625,14 @@ int AapjeOmino::besteScore (Zet & besteZet, long long & aantalStanden)
     //2. Speler kan geen zet uitvoeren 
     if (zetten.empty())
     {
-      int score;
       wisselSpeler();
       aantalStanden++;
+ 
       maxScore = - besteScore(besteZet, aantalStanden);
+      aanroep--;
+      if ((aanroep % 2 == 0 && aanBeurt == 1) || (aanroep % 2 == 1 && aanBeurt == 2))
+        maxScore = - maxScore;
+    
       besteZet.setDefaultWaardes();
       wisselSpeler();
      
@@ -640,14 +646,22 @@ int AapjeOmino::besteScore (Zet & besteZet, long long & aantalStanden)
     {
       for (vector<Zet>::iterator it = zetten.begin(); it != zetten.end(); ++it)
       {
-        //Doen een zet
+        //Doen een zet4
         if (!doeZet(*it))
           continue;
         aantalStanden++;
+        
         //Recursieve aanroep
         score = - besteScore(besteZet, aantalStanden);
-        scoresVanDeSpeler.push_back(score);
+        aanroep--;
+        
+        if (aanroep % 2 != 0)
+          scoresVanDeSpeler.push_back(-score);
+        else
+          scoresVanDeSpeler.push_back(score);
+
         wisselSpeler();
+        
         undoZet();
       }
       if (gepakt)
