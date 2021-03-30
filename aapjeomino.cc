@@ -594,11 +594,9 @@ void AapjeOmino::setMaxScore (int score)
 
 int AapjeOmino::besteScore (Zet & besteZet, long long & aantalStanden)
 {
-  aanroep++;
   //Eindstand is bereikt
   if (eindstand())
   {
-    cout << "AANROEP: " << aanroep << endl;
     if (aanBeurt == 1)
       return Lieke.size() - Femke.size();
     else 
@@ -606,8 +604,11 @@ int AapjeOmino::besteScore (Zet & besteZet, long long & aantalStanden)
   }
   else
   {
+    //Steen us gepakt uit de pot
     bool gepakt = false;
+    //Nummer van de steen die is gepakt
     int nummerVDSteen;
+    //Current score van ee speler 
     int score;
 
     vector <Zet> zetten = bepaalMogelijkeZetten();
@@ -615,6 +616,7 @@ int AapjeOmino::besteScore (Zet & besteZet, long long & aantalStanden)
     //Als er geen steen voor een zet
     if (zetten.empty())
     {
+      //Haal een steen uit de pot
       nummerVDSteen = haalSteenUitPot();
       if (nummerVDSteen != -1)
       {
@@ -629,11 +631,8 @@ int AapjeOmino::besteScore (Zet & besteZet, long long & aantalStanden)
       aantalStanden++;
  
       maxScore = - besteScore(besteZet, aantalStanden);
-      aanroep--;
-      if ((aanroep % 2 == 0 && aanBeurt == 1) || (aanroep % 2 == 1 && aanBeurt == 2))
-        maxScore = - maxScore;
-    
       besteZet.setDefaultWaardes();
+      
       wisselSpeler();
      
       //Een specifieke steen terug naar de pot terugzetten
@@ -653,12 +652,8 @@ int AapjeOmino::besteScore (Zet & besteZet, long long & aantalStanden)
         
         //Recursieve aanroep
         score = - besteScore(besteZet, aantalStanden);
-        aanroep--;
-        
-        if (aanroep % 2 != 0)
-          scoresVanDeSpeler.push_back(-score);
-        else
-          scoresVanDeSpeler.push_back(score);
+        //Alle stenen van de huidige ronde van recursie in een vector stoppen 
+        scoresVanDeSpeler.push_back(score);
 
         wisselSpeler();
         
@@ -669,7 +664,8 @@ int AapjeOmino::besteScore (Zet & besteZet, long long & aantalStanden)
         undoPot(nummerVDSteen);
         gepakt = false;
       }
-      //Bepalen de beste score van de speler   
+      //Bepalen de beste score van de speler  
+      //Current recursion level 
       maxScore = scoresVanDeSpeler[0];
       besteZet = zetten[0];
       for (int i = 1; i < scoresVanDeSpeler.size(); i++)
