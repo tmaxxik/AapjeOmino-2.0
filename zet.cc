@@ -28,7 +28,7 @@ Zet::Zet (int num, int rotatie, int pos_i, int pos_j)
 void Zet::setDefaultWaardes ()
 {
   i = -1;
-  r = 0;
+  r = -1;
   rij = -1;
   kolom = -1;
 }  // setDefaultWaardes
@@ -73,7 +73,6 @@ void Zet::setWaardes (int i0, int r0, int rij0, int kolom0)
 int Zet::getI ()
 {
   return i;
-
 }  // getI
 
 //*************************************************************************
@@ -81,7 +80,6 @@ int Zet::getI ()
 int Zet::getR ()
 {
   return r;
-
 }  // getR
 
 //*************************************************************************
@@ -89,7 +87,6 @@ int Zet::getR ()
 int Zet::getRij ()
 {
   return rij;
-
 }  // getRij
 
 //*************************************************************************
@@ -97,7 +94,6 @@ int Zet::getRij ()
 int Zet::getKolom ()
 {
   return kolom;
-
 }  // getKolom
 
 //*************************************************************************

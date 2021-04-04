@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <fstream>
+#include "limits.h"
 #include "zet.h"
 #include "steen.h"
 using namespace std;
@@ -153,12 +154,7 @@ class AapjeOmino
     //Maakt een zet met een steen uit de pot ongedaan 
     void undoPot (int steenN);
 
-    //Setter voor maxScore
-    void setMaxScore (int score);
-
-
-      int aanroep = 0;
-
+    //Checks voor leesIn. 
     bool checkHoogte (int num);
     bool checkBreedte (int num);
     bool checkNrStenen (int num);
@@ -167,6 +163,8 @@ class AapjeOmino
     bool checkWaardes (int i, int n, int o, int z, int w);
     void verdeelStenen (int pos_i, int pos_j, int beginAantalStenen);
 
+    //Print alle stenen uit een vector (handen/pot)
+    void printStenen (vector<Steen> stenen, string role);
   private:
     //Het bord (steennummer en rotatie)
     pair<int,int> bord[MaxDimensie][MaxDimensie];
@@ -186,6 +184,25 @@ class AapjeOmino
     int maxScore;
     vector <int> scoresVanDeSpeler;
  
+    //*** Voor besteScore() ***
+    //Bepalt voor speeler aan de beurt het beste score en beste zetten
+    //IN:
+    //currentSpeler - speler die aan de beurt is
+    //recursieLevel - level van recursie (0 aan het begin)
+    //maxScore - max score die speler kan bereiken
+    //besteZetten - beste zetten van speler die aan de beurt is
+    //aantalStanden - aantal recursieve aanroepen
+    //OUT:
+    //beste score van een speler die aan de beurt is + bijbehorende beste zetten
+    int padNaarBesteScore (int currentSpeler, int recursieLevel, int & maxScore, vector<Zet> & besteZetten, long long & aantalStanden);
+    //Gebruikt de resultaten van padNaarBesteScore om een optimale speel te houden 
+    //IN:
+    //currentSpeler - speler die aan de beurt is
+    //besteZet - de beste zet (paakt altijd de eerste van beste zetten)
+    //aantalStanden - aantal recursieve aanroepen
+    //OUT:
+    //beste score voor een huidige speler als beiden optimaal spelen + bijbehorende beste zet.
+    int optimaalSpel (int currentSpeler, Zet & besteZet, long long & aantalStanden);
     
     //Stenen op het bord
     vector <Steen> stenenOpHetBord; 

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <vector>
+#include "limits.h"
 #include "standaard.h"
 #include "aapjeomino.h"
 
@@ -14,7 +15,7 @@ AapjeOmino::AapjeOmino ()
 {
   aanBeurt = 1;
   steenGepakt = false;
-  maxScore = -100;
+  maxScore = INT_MIN;
   for (int i = 0; i < MaxDimensie; i++)
   {
     for (int j = 0; j < MaxDimensie; j++)
@@ -181,12 +182,44 @@ bool AapjeOmino::leesIn (const char * invoernaam)
 
 bool AapjeOmino::eindstand ()
 {
-  if (Femke.empty() || Lieke.empty() || (bepaalMogelijkeZetten().empty() && pot.empty())) {
+  if (Femke.empty() || Lieke.empty() || 
+     (bepaalMogelijkeZetten().empty() && pot.empty()))
     return true;
-  }//if
   return false;
-  
 }  // eindstand
+
+//*************************************************************************
+
+void AapjeOmino::printStenen (vector<Steen> stenen, string role) 
+{
+  //Lopen de elke rij af en printen de bijbehorende waardes
+  for (int rij = 0; rij < 4; rij++)
+  {
+    if (rij == 2)
+    {
+      cout << role << "  ";
+      for (int i = 0; i < stenen.size(); i++)
+        cout << stenen[i].getOost() << "   " << stenen[i].getWest() << "  ";    
+    }
+    else
+    {
+      for (int i = 0; i < role.length(); i++)
+        cout << " ";
+      cout << "  ";
+    }  
+    if (rij == 0)
+      for (int i = 0; i < stenen.size(); i++)
+        cout << " (" << stenen[i].getSteenNummer() << ")   ";
+    if (rij == 1)
+      for (int i = 0; i < stenen.size(); i++)
+        cout << "  " << stenen[i].getNoord() << "    ";
+    if (rij == 3)
+      for (int i = 0; i < stenen.size(); i++)
+        cout << "  " << stenen[i].getZuid() << "    ";     
+    cout << endl;
+  } 
+  cout << endl;   
+}  // printStenen
 
 //*************************************************************************
 
@@ -243,18 +276,19 @@ void AapjeOmino::drukAf()
   }
   cout << endl;
   //Handen
-  cout << "Femke: " << endl;
-  for (vector <Steen>::iterator it = Femke.begin(); it != Femke.end(); ++it)
-    it->print();
-  cout << "Lieke: " << endl;
-  for (vector <Steen>::iterator it = Lieke.begin(); it != Lieke.end(); ++it)
-    it->print();
-  //Pot
-  cout << "Pot: " << endl;
-  for (vector <Steen>::iterator it = pot.begin(); it != pot.end(); ++it)
-    it->print();
-  string beurt = (aanBeurt == 1) ? "Femke" : "Lieke";
-  cout << endl << "Nu is aan de beurt: " << beurt << endl;
+  string role;
+  role = "Femke:";
+  printStenen(Femke, role);
+  role = "Lieke:";
+  printStenen(Lieke, role);
+  role = "Pot:  ";
+  printStenen(pot, role);
+  cout << "Aan de beurt is: ";
+  if (aanBeurt == 1)
+    cout << "Femke";
+  else
+    cout << "Lieke";
+  cout << endl; 
 }  // drukAf
 
 //*************************************************************************
@@ -462,7 +496,6 @@ bool AapjeOmino::doeZet (Zet zet)
     }
     k++;
   }
-
   //Geen zulke steen
   if (it == speler.end())
     return false;
@@ -534,15 +567,14 @@ vector<Zet> AapjeOmino::bepaalGoedeZetten ()
 
 void AapjeOmino::undoZet ()
 {
-  //wisselSpeler();
+  //Bepalen een steen dat geretourneerd moet worden en retourneren hem
   Steen returnSteen = stenenOpHetBord.back();
-  //cout << "Steen te retouneren naar de " << aanBeurt << " is " << returnSteen.getSteenNummer() << endl;
   if (aanBeurt == 1)
     Femke.push_back(returnSteen);
   else
     Lieke.push_back(returnSteen);
   stenenOpHetBord.pop_back();
-
+  //Verwijderen uit het bord
   for (int i = 0; i < hoogte; i++)
   {
     for (int j = 0; j < breedte; j++)
@@ -554,30 +586,28 @@ void AapjeOmino::undoZet ()
       }
     }
   }
-
 }  // undoZet
 
 //*************************************************************************
 
 void AapjeOmino::undoPot (int steenN)
 {
+  //Voor een speler die de steen uit het pot gepaakt had,
+  //retouneren steen naar het pot en verwijderen de steen van een speler
   int pos;
   if (aanBeurt == 1)
   {
-    for (int i = 0; i < Femke.size(); i++)
-      if (Femke[i].getSteenNummer() == steenN)
+    for (int i = 0; i < Femke.size(); i++) 
+      if (Femke[i].getSteenNummer() == steenN) 
         pos = i;
-
     pot.insert(pot.begin(), Femke.at(pos));
     Femke.erase(Femke.begin() + pos);
   }
-
   if (aanBeurt == 2)
   {
     for (int i = 0; i < Lieke.size(); i++)
-      if (Lieke[i].getSteenNummer() == steenN)
+      if (Lieke[i].getSteenNummer() == steenN) 
         pos = i;
-    
     pot.insert(pot.begin(), Lieke.at(pos));
     Lieke.erase(Lieke.begin() + pos);
   }  
@@ -585,102 +615,170 @@ void AapjeOmino::undoPot (int steenN)
 
 //*************************************************************************
 
-void AapjeOmino::setMaxScore (int score)
+int AapjeOmino::padNaarBesteScore (int currentSpeler, int recursieLevel, 
+                                   int & maxScore, vector<Zet> & besteZetten, 
+                                   long long & aantalStanden)
 {
-  maxScore = score;
-}  // setMaxScore
+  //Eindstand (basis van recursieve aanroep)
+  if (eindstand())
+  {
+    int score = int(Lieke.size()) - int(Femke.size());
+    if (currentSpeler == 1) 
+      return score;
+    return -score;
+  }
+  //Als een steen uit de pot gepakt is
+  bool gepakt = false;
+  //Current score
+  int score;
+  //Speler aan de beurt
+  int spelerADBeurt = aanBeurt;
+
+  //Pakken als het nodig en mogelijk is een steen uit de pot
+  int nummerVDSteen = haalSteenUitPot();
+  if (nummerVDSteen != -1) 
+    gepakt = true;
+  
+  //Vepalen mogelijke zetten
+  vector <Zet> zetten = bepaalMogelijkeZetten();
+
+  //Als er nog steeds geen mogelijke zetten
+  if (zetten.empty())
+  {
+    //De beurt gaat naar een andere speel
+    wisselSpeler();
+    aantalStanden++;
+    //padNaarBesteScore voor een veranderende speler
+    score = padNaarBesteScore (currentSpeler, recursieLevel + 1, 
+                               maxScore, besteZetten, aantalStanden);
+    //Bewaren de hoogste score
+    if (score > maxScore)
+    {
+      maxScore = score;
+      besteZetten.clear();
+    }
+    //Terug naar de goede speler
+    aanBeurt = spelerADBeurt;
+    
+    //De steen terug naar de pot terugzetten
+    if (nummerVDSteen != -1)
+      undoPot(nummerVDSteen);
+    return maxScore;
+  }
+  
+  //Speler heeft wel een zet OF hij heeft een steen gepakt en kan nu een zet uitvoeren
+  for (vector<Zet>::iterator it = zetten.begin(); it != zetten.end(); ++it)
+  {
+    aanBeurt = spelerADBeurt;
+    //Doen een zet
+    if (!doeZet(*it))
+      continue;
+    aantalStanden++;
+    //padNaarBesteScore voor een veranderende speler
+    score = padNaarBesteScore(currentSpeler, recursieLevel + 1, 
+                              maxScore, besteZetten, aantalStanden);
+    //Bewaren de hoogste score
+    if (score > maxScore)
+    {
+      maxScore = score;
+      besteZetten.clear();
+    }
+    //Bewaren de beste zetten
+    if (score == maxScore && recursieLevel == 0)
+      besteZetten.push_back(*it);
+    //Terug naar een goede speler
+    aanBeurt = spelerADBeurt;
+    undoZet();
+  }
+  //Terug naar een goede speler
+  aanBeurt = spelerADBeurt;
+  //Als een steen gepakt was
+  if (gepakt)
+    undoPot(nummerVDSteen);
+  return maxScore;
+}  // padNaarBesteScore
+
+//*************************************************************************
+
+int AapjeOmino::optimaalSpel (int currentSpeler, Zet & besteZet, 
+                              long long & aantalStanden)
+{
+   //Eindstand (basis van recursieve aanroep)
+  if (eindstand())
+  {
+    int score = int(Lieke.size()) - int(Femke.size());
+    if (currentSpeler == 1) 
+      return score;
+    return -score;
+  }
+  //Hetzelfde principe als bij padNaarBesteScore
+  bool gepakt = false;
+  int score;
+  int spelerADBeurt = aanBeurt;
+  //Pakken als het nodig en mogelijk is een steen uit de pot
+  int nummerVDSteen = haalSteenUitPot();
+  if (nummerVDSteen != -1) 
+    gepakt = true;
+  //Beste zetten voor een huidige speler
+  vector <Zet> zetten;
+  int optimaleScore = INT_MIN;
+  
+  //Bepalen de beste score en zetten voor een huidige speler
+  padNaarBesteScore(spelerADBeurt, 0, optimaleScore, zetten, aantalStanden);
+
+  //Speler kan geen zet uitvoeren 
+  if (zetten.empty() || !doeZet(zetten[0]))
+  {
+    wisselSpeler();
+    aantalStanden++;
+    //Verwisselen speler en bepalen optimaalSpel voor een veraderende speler
+    score = optimaalSpel (currentSpeler, besteZet, aantalStanden);
+    //Bewaren de hoogste score
+    if (score > maxScore)
+    {
+      maxScore = score;
+      besteZet.setDefaultWaardes();
+    }
+    //Terug naar een goede speler
+    aanBeurt = spelerADBeurt;
+    
+    //Een steen terug naar de pot terugzetten
+    if (nummerVDSteen != -1)
+      undoPot(nummerVDSteen);
+    return maxScore;
+  }
+  
+  aantalStanden++;
+  //Bepalen optimaalSpel voor een veraderende speler
+  score = optimaalSpel (currentSpeler, besteZet, aantalStanden);
+  //Bewaren de hooste score
+  if (score > maxScore)
+    maxScore = score;
+  //Bewaren de beste (eerste) zet
+  if (score == maxScore)
+    besteZet = zetten[0];
+  //Terug naar een goede speler
+  aanBeurt = spelerADBeurt;
+  //Undo changes
+  undoZet();
+  if (gepakt)
+    undoPot(nummerVDSteen);
+  return maxScore;
+}  // optimaalSpel
 
 //*************************************************************************
 
 int AapjeOmino::besteScore (Zet & besteZet, long long & aantalStanden)
 {
-  //Eindstand is bereikt
-  if (eindstand())
-  {
-    if (aanBeurt == 1)
-      return Lieke.size() - Femke.size();
-    else 
-      return Femke.size() - Lieke.size();
-  }
-  else
-  {
-    //Steen us gepakt uit de pot
-    bool gepakt = false;
-    //Nummer van de steen die is gepakt
-    int nummerVDSteen;
-    //Current score van ee speler 
-    int score;
-
-    vector <Zet> zetten = bepaalMogelijkeZetten();
-
-    //Als er geen steen voor een zet
-    if (zetten.empty())
-    {
-      //Haal een steen uit de pot
-      nummerVDSteen = haalSteenUitPot();
-      if (nummerVDSteen != -1)
-      {
-        zetten = bepaalMogelijkeZetten();
-        gepakt = true;
-      }
-    }
-    //2. Speler kan geen zet uitvoeren 
-    if (zetten.empty())
-    {
-      wisselSpeler();
-      aantalStanden++;
- 
-      maxScore = - besteScore(besteZet, aantalStanden);
-      besteZet.setDefaultWaardes();
-      
-      wisselSpeler();
-     
-      //Een specifieke steen terug naar de pot terugzetten
-      if (nummerVDSteen != -1)
-        undoPot(nummerVDSteen);
-      return maxScore;
-    }
-    //Speler heeft wel een zet (3.) OF hij heeft een steen gepakt en kan nu een zet uitvoeren (1.)
-    else 
-    {
-      for (vector<Zet>::iterator it = zetten.begin(); it != zetten.end(); ++it)
-      {
-        //Doen een zet4
-        if (!doeZet(*it))
-          continue;
-        aantalStanden++;
-        
-        //Recursieve aanroep
-        score = - besteScore(besteZet, aantalStanden);
-        //Alle stenen van de huidige ronde van recursie in een vector stoppen 
-        scoresVanDeSpeler.push_back(score);
-
-        wisselSpeler();
-        
-        undoZet();
-      }
-      if (gepakt)
-      {
-        undoPot(nummerVDSteen);
-        gepakt = false;
-      }
-      //Bepalen de beste score van de speler  
-      //Current recursion level 
-      maxScore = scoresVanDeSpeler[0];
-      besteZet = zetten[0];
-      for (int i = 1; i < scoresVanDeSpeler.size(); i++)
-      {
-        if (scoresVanDeSpeler[i] > maxScore)
-        {
-          maxScore = scoresVanDeSpeler[i];
-          besteZet = zetten[i];
-        }
-      }
-      scoresVanDeSpeler.clear();
-    }
-  }
-  return maxScore;
-}
+  //Bij herhaaldelijk bepalen de beste score (en ook een zet) van een speler
+  //die aan de beurt is, vinde wij de besteScore voor de speler
+  //als beiden optimaal spelen. 
+  int spelerADBeurt = aanBeurt;
+  int score = optimaalSpel (spelerADBeurt, besteZet, aantalStanden);
+  aanBeurt = spelerADBeurt;
+  maxScore = INT_MIN;
+  return score;
+}  // besteScore
 
 //*************************************************************************
 
